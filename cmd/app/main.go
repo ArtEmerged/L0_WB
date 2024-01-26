@@ -30,7 +30,8 @@ func main() {
 			fmt.Println(data)
 			msg.Ack()
 		},
-			stan.DurableName(durableID))
+			stan.DurableName(durableID),
+			stan.DeliverAllAvailable())
 		if err != nil {
 			log.Printf("[ERROR]: %s", err.Error())
 			return
