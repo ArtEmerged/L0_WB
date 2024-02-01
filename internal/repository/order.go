@@ -82,9 +82,71 @@ func (r *OrderRepo) Add(order *models.Order) error {
 
 }
 
-func (r *OrderRepo) Get(uid string) (*models.Order, error) {
-	// order := new(models.Order)
+func (r *OrderRepo) Get(orderUID string) (*models.Order, error) {
+	fmt.Println("i here DB")
+	order := new(models.Order)
+	query := fmt.Sprintf("SELECT * FROM %s WHERE order_uid=$1", ordersTable)
 
-	// query := fmt.Sprintf("SELECT * FROM %s o JOIN ")
-	return nil, nil
+	err := r.db.Get(order, query, orderUID)
+	if err != nil {
+		return nil, err
+	}
+
+	delivery := models.Delivery{}
+	query = fmt.Sprintf("SELECT * FROM %s WHERE order_uid=$1", deliveryTable)
+
+	err = r.db.Get(&delivery, query, orderUID)
+	if err != nil {
+		return nil, err
+	}
+
+	payment := models.Payment{}
+	query = fmt.Sprintf("SELECT * FROM %s WHERE order_uid=$1", paymentsTable)
+
+	err = r.db.Get(&payment, query, orderUID)
+	if err != nil {
+		return nil, err
+	}
+
+	items := []models.Item{}
+	query = fmt.Sprintf("SELECT * FROM %s WHERE order_uid=$1", itemsTable)
+	rows, err := r.db.Queryx(query, orderUID)
+	if err != nil {
+		return nil, err
+	}
+	item := models.Item{}
+	for rows.Next() {
+		err = rows.StructScan(&item)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+
+	order.Delivery = delivery
+	order.Payment = payment
+	order.Items = items
+
+	return order, nil
+}
+
+func (r *OrderRepo) GetCache(sizeCache int) ([]string, error) {
+	ordersId := []string{}
+	query := fmt.Sprintf("SELECT order_uid FROM %s ORDER BY date_created DESC LIMIT $1", ordersTable)
+	rows, err := r.db.DB.Query(query, sizeCache)
+	if err != nil {
+		return nil, err
+	}
+	var orderUID string
+	for rows.Next() {
+		err = rows.Scan(&orderUID)
+		if err != nil {
+			return nil, err
+		}
+		ordersId = append(ordersId, orderUID)
+	}
+	if rows.Err() != nil {
+		return nil, err
+	}
+	return ordersId, nil
 }

@@ -16,7 +16,8 @@ const (
 
 type Order interface {
 	Add(order *models.Order) error
-	Get(uid string) (*models.Order, error)
+	Get(orderUID string) (*models.Order, error)
+	GetCache(sizeCache int) ([]string, error)
 }
 
 type Cache interface{}
