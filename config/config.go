@@ -1,8 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -21,10 +21,11 @@ type Postgers struct {
 	Password string
 	Host     string
 	Port     string
+	SSLMode  string
 }
 
 type Nats struct {
-	ClusterID string
+	ClusterId string
 	DurableId string
 	Channel   string
 }
@@ -33,22 +34,28 @@ type Config struct {
 	CfgServer   ServerHTTP
 	CfgPostgres Postgers
 	CfgNats     Nats
+	LenCache    int
 }
 
 func InitConfig(fileName string) (*Config, error) {
 	err := godotenv.Load(fileName)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR]: failed to load environment variables from file: %w", err)
+		return nil, err
+	}
+
+	lenCache, err := strconv.Atoi(os.Getenv("MAX_LEN_CACHE"))
+	if err != nil {
+		return nil, err
 	}
 
 	timeout, err := time.ParseDuration(os.Getenv("TIMEOUT"))
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR]: failed to parse TIMEOUT: %w", err)
+		return nil, err
 	}
 
 	idleTimeout, err := time.ParseDuration(os.Getenv("IDLE_TIMEOUT"))
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR]: failed to parse IDLE_TIMEOUT: %w", err)
+		return nil, err
 	}
 
 	server := ServerHTTP{
@@ -64,9 +71,10 @@ func InitConfig(fileName string) (*Config, error) {
 		Password: os.Getenv("DB_PASSWORD"),
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
+		SSLMode:  os.Getenv("DB_SSLMODE"),
 	}
 	nats := Nats{
-		ClusterID: os.Getenv("CLUSTER_ID"),
+		ClusterId: os.Getenv("CLUSTER_ID"),
 		DurableId: os.Getenv("DURABLE_ID"),
 		Channel:   os.Getenv("CHANNEL"),
 	}
@@ -74,5 +82,6 @@ func InitConfig(fileName string) (*Config, error) {
 		CfgServer:   server,
 		CfgPostgres: postgres,
 		CfgNats:     nats,
+		LenCache:    lenCache,
 	}, nil
 }
