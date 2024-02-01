@@ -3,12 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
 	"time"
 	"wblzero/internal/models"
 
 	stan "github.com/nats-io/stan.go"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -23,32 +23,31 @@ func main() {
 		clientID,
 		stan.NatsURL(stan.DefaultNatsURL))
 	if err != nil {
-		log.Printf("[ERROR]: %s", err.Error())
+		logrus.Error(err.Error())
 		return
 	}
 	defer sc.Close()
 
 	var order models.Order
-
-	for {
+	ticker := time.NewTicker(time.Second * 5)
+	logrus.Infof("connected to Nats Streaming %s clusterID: [%s] clientID: [%s]", stan.DefaultNatsURL, clientID, clusterID)
+	for range ticker.C {
 		order = randomOrder()
 		orderByte, err := json.Marshal(order)
 		if err != nil {
-			log.Printf("[ERROR]: %s", err.Error())
+			logrus.Error(err.Error())
 			return
 		}
-
 		err = sc.Publish(channel, orderByte)
 		if err != nil {
-			log.Printf("[ERROR]: %s", err.Error())
+			logrus.Error(err.Error())
 			return
 		}
-		time.Sleep(5 * time.Second)
+		logrus.Infof("order:%s successfully shipped to '%s' channel", order.OrderUID, channel)
 	}
 }
 
 func randomOrder() models.Order {
-
 	randomOrder := models.Order{
 		OrderUID:    generateRandomString(20),
 		TrackNumber: generateRandomString(12),
@@ -63,7 +62,7 @@ func randomOrder() models.Order {
 			Email:   generateRandomEmail(),
 		},
 		Payment: models.Payment{
-			Transaction:  generateRandomString(15),
+			Transaction:  generateRandomString(20),
 			RequestID:    generateRandomString(10),
 			Currency:     "USD",
 			Provider:     generateRandomString(6),
@@ -78,15 +77,15 @@ func randomOrder() models.Order {
 			{
 				ChrtID:      uint(rand.Intn(100000)),
 				TrackNumber: generateRandomString(12),
-				Price:       uint(rand.Intn(500) + 500), 
-				Rid:         generateRandomString(15),
+				Price:       uint(rand.Intn(500) + 500),
+				Rid:         generateRandomString(20),
 				Name:        generateRandomString(8),
-				Sale:        uint8(rand.Intn(50)), 
+				Sale:        uint8(rand.Intn(50)),
 				Size:        generateRandomString(2),
-				TotalPrice:  uint(rand.Intn(500) + 500), 
+				TotalPrice:  uint(rand.Intn(500) + 500),
 				NmID:        uint(rand.Intn(100000)),
 				Brand:       generateRandomString(12),
-				Status:      uint16(rand.Intn(500)), 
+				Status:      uint16(rand.Intn(500)),
 			},
 		},
 		Locale:            "en",
@@ -95,7 +94,7 @@ func randomOrder() models.Order {
 		DeliveryService:   generateRandomString(5),
 		Shardkey:          generateRandomString(2),
 		SmID:              uint(rand.Intn(100)),
-		DateCreated:       time.Now(),
+		DateCreated:       time.Now().UTC(),
 		OofShard:          generateRandomString(1),
 	}
 
@@ -104,7 +103,7 @@ func randomOrder() models.Order {
 
 func generateRandomString(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	
+
 	randomString := make([]byte, length)
 	for i := range randomString {
 		randomString[i] = charset[rand.Intn(len(charset))]
