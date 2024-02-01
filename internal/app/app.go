@@ -2,11 +2,15 @@ package app
 
 import (
 	"context"
-	"os"
 	"os/signal"
 	"syscall"
 	"wblzero/config"
+	"wblzero/internal/cache"
+	httpserv "wblzero/internal/http_serv"
+	"wblzero/internal/nats"
 	repo "wblzero/internal/repository"
+	"wblzero/internal/server"
+	"wblzero/internal/service"
 
 	"github.com/sirupsen/logrus"
 )
@@ -16,31 +20,60 @@ func RunServer(cfgPath string) {
 	if err != nil {
 		logrus.Fatalf("failed to initialize config: %s\n", err.Error())
 	}
+
 	db, err := repo.NewPostgresDB(cfg.CfgPostgres)
 	if err != nil {
 		logrus.Fatalf("failed to initialize db: %s\n", err.Error())
 	}
 
-	repo := repo.NewOrderPostgres(db)
+	repos := repo.NewRepoitory(db)
 
-	subscriber := newSubscriber(repo)
+	cache, err := cache.NewCache(repos.Order, 1)
+	if err != nil {
+		db.Close()
+		logrus.Fatalf("failed to initialize cache: %s\n", err.Error())
+	}
+	services := service.NewService(repos, cache)
 
-	ctxForSubscriber, cancel := context.WithCancel(context.Background())
-	go subscriber.getsOrdersFromNats(ctxForSubscriber, cfg.CfgNats)
-	logrus.Infoln("subscription handler successfully started")
+	handlerHttp := httpserv.NewHandler(services)
+	handlerNats := nats.NewHandler(services)
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
-	<-quit
+	httpServ := new(server.Server)
 
-	cancel()
-	logrus.Infoln("subscriber shutdown was successful")
+	go func() {
+		err = httpServ.Run(&cfg.CfgServer, handlerHttp.InitRouter())
+		if err != nil {
+			logrus.Errorf("occured while running http server: %s\n", err.Error())
+		}
+	}()
+	logrus.Infof("listening on: http://localhost:%s", cfg.CfgServer.Port)
+
+	subscriber := server.NewSubscribe(cfg.CfgNats, handlerNats)
+
+	quit, c := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer c()
+
+	<-quit.Done()
+
+	err = httpServ.Shutdown(context.Background())
+	if err != nil {
+		logrus.Errorf("server shutdown error:%s", err.Error())
+	} else {
+		logrus.Info("server shutdown was successful")
+	}
+
+	err = subscriber.ShutdownNats()
+	if err != nil {
+		logrus.Errorf("subscriber shutdown error:%s", err.Error())
+	} else {
+		logrus.Infoln("subscriber shutdown was successful")
+	}
 
 	err = db.Close()
 	if err != nil {
-		logrus.Errorf("occured on db connection close : %s", err.Error())
+		logrus.Errorf("DB shutdown error:%s", err.Error())
 	} else {
-		logrus.Infoln("db shutdown was successful")
+		logrus.Infoln("DB shutdown was successful")
 	}
 
 }
