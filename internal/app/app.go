@@ -28,7 +28,7 @@ func RunServer(cfgPath string) {
 
 	repos := repo.NewRepoitory(db)
 
-	cache, err := cache.NewCache(repos.Order, 1)
+	cache, err := cache.NewCache(repos.Order, cfg.LenCache)
 	if err != nil {
 		db.Close()
 		logrus.Fatalf("failed to initialize cache: %s\n", err.Error())
