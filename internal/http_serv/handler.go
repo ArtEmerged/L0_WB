@@ -2,6 +2,7 @@ package httpserv
 
 import (
 	"net/http"
+	"wblzero/internal/models"
 	"wblzero/internal/service"
 
 	"github.com/sirupsen/logrus"
@@ -44,8 +45,12 @@ func (h *Handler) order(w http.ResponseWriter, r *http.Request) {
 
 	order, err := h.service.Get(orderID)
 	if err != nil {
-		logrus.Errorf("errGet:%s", err.Error())
-		http.Error(w, http.StatusText(500), 500)
+		logrus.Errorf("geting order:%s%s", err.Error(), orderID)
+		if err == models.ErrNoOrder {
+			http.Error(w, err.Error()+orderID, http.StatusBadRequest)
+			return
+		}
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 	h.renderPage(w, order)
