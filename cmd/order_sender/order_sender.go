@@ -37,7 +37,7 @@ func initConfig(path string) (*config, error) {
 }
 
 func main() {
-	cfgPath := flag.String("cfg", "./wb.env", "USAGE -cfg='path_to_config_file'")
+	cfgPath := flag.String("cfg", "./.env", "USAGE -cfg='path_to_config_file'")
 	flag.Parse()
 
 	cfg, err := initConfig(*cfgPath)
