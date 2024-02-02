@@ -1,0 +1,66 @@
+version: '3'
+
+services:
+  nats-streaming:
+    image: 'nats-streaming'
+    env_file:
+      - .env
+    container_name: ${CLUSTER_ID}
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["-cid", "${CLUSTER_ID}", "-mc", "1", "-msu", "1"]
+    restart: always
+    networks:
+      - nats-streaming-network
+
+  postgres:
+    image: 'postgres:14'
+    container_name: ${DB_NAME}
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secret}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "${DB_PORT}:${DB_PORT}" 
+    restart: always
+    networks:
+      - postgres-network
+    healthcheck:
+      test: pg_isready -U ${DB_USER} -d ${DB_NAME}
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      - postgres
+    volumes:
+      - ./schema:/migrations
+    command: ["-path", "/migrations", "-database", "${DBPG_PATH}", "up", "3"]
+    networks:
+      - postgres-network
+    links: 
+      - postgres
+
+  orders_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+      - nats-streaming
+      - migrate
+    restart: always
+    environment:
+      - DB_HOST=postgres
+    networks:
+      - postgres-network
+      - nats-streaming-network 
+
+networks:
+  postgres-network:
+    driver: bridge
+  nats-streaming-network:
+    driver: bridge
