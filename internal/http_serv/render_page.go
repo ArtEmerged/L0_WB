@@ -3,12 +3,11 @@ package httpserv
 import (
 	"html/template"
 	"net/http"
-	"wblzero/internal/models"
 
 	"github.com/sirupsen/logrus"
 )
 
-func (h *Handler) renderPage(w http.ResponseWriter, data *models.Order) {
+func (h *Handler) renderPage(w http.ResponseWriter, data interface{}) {
 	temp, err := template.ParseFiles("./ui/templates/index.html")
 	if err != nil {
 		logrus.Errorf("there was a problem persing the file:%s", err.Error())
