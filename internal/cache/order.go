@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"time"
 	"wblzero/internal/models"
+
+	"github.com/sirupsen/logrus"
 )
 
 func (c *OrderCache) Add(order *models.Order) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if len(c.data) == orderSize {
+	if len(c.data) == c.cacheMax {
 		maxTime := time.Now().UTC()
 		var delKey string
 		for key, order := range c.data {
@@ -18,8 +20,10 @@ func (c *OrderCache) Add(order *models.Order) {
 				delKey = key
 			}
 		}
+		logrus.Infof("order:%s successfully deleted to cache", delKey)
 		delete(c.data, delKey)
 	}
+	logrus.Infof("order:%s successfully added to cache", order.OrderUID)
 	c.data[order.OrderUID] = order
 }
 
@@ -27,7 +31,8 @@ func (c *OrderCache) Get(orderUID string) (*models.Order, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if order, ok := c.data[orderUID]; ok {
+		logrus.Println("the order was successfully received from the cache")
 		return order, nil
 	}
-	return nil, fmt.Errorf("order not found in cache")
+	return nil, fmt.Errorf("order:%s not found in cache", orderUID)
 }

@@ -4,10 +4,8 @@ import (
 	"sync"
 	"wblzero/internal/models"
 	"wblzero/internal/repository"
-)
 
-const (
-	orderSize = 5
+	"github.com/sirupsen/logrus"
 )
 
 type OrderCache struct {
@@ -24,11 +22,13 @@ func NewCache(repo repository.Order, cacheMax int) (*OrderCache, error) {
 	order := new(models.Order)
 	cache := make(map[string]*models.Order, cacheMax)
 	for _, orderUID := range ordersUID {
+
 		order, err = repo.Get(orderUID)
 		if err != nil {
 			return nil, err
 		}
 		cache[orderUID] = order
+		logrus.Printf("order:%s successfully added to cahce from database", orderUID)
 	}
 	return &OrderCache{
 		data:     cache,

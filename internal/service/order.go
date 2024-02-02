@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"strings"
 	"wblzero/internal/models"
 
@@ -21,6 +22,7 @@ func (s *Service) Get(orderUID string) (*models.Order, error) {
 
 	order, err := s.Cache.Get(orderUID)
 	if err != nil {
+		log.Println(err.Error())
 		order, err = s.Order.Get(orderUID)
 		if err != nil {
 			return nil, err
