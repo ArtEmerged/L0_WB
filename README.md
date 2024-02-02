@@ -101,7 +101,7 @@
 
 <br>
 
-### ERD 
+### Структура базы данных  
 
 <br>
 
@@ -110,11 +110,11 @@
 <br>
 <br>
 
-### Routing Requests
+### Архитектура сервиса
 
 <br>
 
-<iframe src="./ui/static/diagramm_WB_L0.drawio.html" width="100%" height="500px"></iframe>
+![diagramm](./ui/static/img/wb_l0_diagramm.png)
 
 
 </details>
