@@ -1,6 +1,7 @@
 package service
 
 import (
+	"strings"
 	"wblzero/internal/models"
 
 	"github.com/go-playground/validator"
@@ -16,6 +17,8 @@ func (s *Service) Add(order *models.Order) error {
 }
 
 func (s *Service) Get(orderUID string) (*models.Order, error) {
+	orderUID = strings.TrimSpace(orderUID)
+
 	order, err := s.Cache.Get(orderUID)
 	if err != nil {
 		order, err = s.Order.Get(orderUID)
