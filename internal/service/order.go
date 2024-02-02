@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"wblzero/internal/models"
 
 	"github.com/go-playground/validator"
@@ -17,7 +16,6 @@ func (s *Service) Add(order *models.Order) error {
 }
 
 func (s *Service) Get(orderUID string) (*models.Order, error) {
-	fmt.Println("service:GEtByorderId")
 	order, err := s.Cache.Get(orderUID)
 	if err != nil {
 		order, err = s.Order.Get(orderUID)

@@ -24,13 +24,10 @@ func (c *OrderCache) Add(order *models.Order) {
 }
 
 func (c *OrderCache) Get(orderUID string) (*models.Order, error) {
-	fmt.Println("Cache:Get")
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if order, ok := c.data[orderUID]; ok {
-		fmt.Println("Cache:Get:Ok")
 		return order, nil
 	}
-	fmt.Println("Cache:Get:not found")
 	return nil, fmt.Errorf("order not found in cache")
 }

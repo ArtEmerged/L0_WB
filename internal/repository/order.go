@@ -83,7 +83,6 @@ func (r *OrderRepo) Add(order *models.Order) error {
 }
 
 func (r *OrderRepo) Get(orderUID string) (*models.Order, error) {
-	fmt.Println("i here DB")
 	order := new(models.Order)
 	query := fmt.Sprintf("SELECT * FROM %s WHERE order_uid=$1", ordersTable)
 

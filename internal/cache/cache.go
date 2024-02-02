@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"fmt"
 	"sync"
 	"wblzero/internal/models"
 	"wblzero/internal/repository"
@@ -31,7 +30,6 @@ func NewCache(repo repository.Order, cacheMax int) (*OrderCache, error) {
 		}
 		cache[orderUID] = order
 	}
-	fmt.Println(cache)
 	return &OrderCache{
 		data:     cache,
 		cacheMax: cacheMax}, nil
