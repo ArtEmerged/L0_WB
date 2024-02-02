@@ -16,7 +16,7 @@ func NewHandler(service *service.Service) *Handler {
 }
 
 func (h *Handler) index(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/order/" {
+	if r.URL.Path != "/" {
 		logrus.Errorf("client:[%s] incorrect path:[%s]", r.RemoteAddr, r.URL.Path)
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
