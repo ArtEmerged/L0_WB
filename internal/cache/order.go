@@ -31,7 +31,7 @@ func (c *OrderCache) Get(orderUID string) (*models.Order, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if order, ok := c.data[orderUID]; ok {
-		logrus.Println("the order was successfully received from the cache")
+		logrus.Printf("the order:%s was successfully received from the cache", orderUID)
 		return order, nil
 	}
 	return nil, fmt.Errorf("order:%s not found in cache", orderUID)
