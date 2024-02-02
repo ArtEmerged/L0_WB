@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"wblzero/internal/models"
 
@@ -88,6 +89,9 @@ func (r *OrderRepo) Get(orderUID string) (*models.Order, error) {
 
 	err := r.db.Get(order, query, orderUID)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			err = models.ErrNoOrder
+		}
 		return nil, err
 	}
 
