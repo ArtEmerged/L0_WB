@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>WB_L0</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link
+      rel="shortcut icon"
+      href="/static/img/icons8.png"
+      type="image/x-icon"
+    />
+  </head>
+  <body class="container">
+    
+    <a href="/"><h2>Order check</h2></a>
+    <div class="input">
+        <form action="/order/" method="GET" novalidate>
+            <label for="orderId">Enter Order ID:</label>
+            <input type="text" id="orderId" name="orderId" placeholder="Enter your orderUID" value="{{.OrderUID}}" required>
+            <button type="submit">Get Order</button>
+        </form>    
+    </div>
+    {{if .}}
+    <h2>Your OrderUID:{{.OrderUID}}</h2>
+    <div id="yourOrder">
+        <p>TrackNumber:{{.TrackNumber}}</p>
+        <p>Entry:{{.Entry}}</p>
+        <p>Locale:{{.Locale}}</p>
+        <p>InternalSignature:{{.InternalSignature}}</p>
+        <p>CustomerID:{{.CustomerID}}</p>
+        <p>DeliveryService:{{.DeliveryService}}</p>
+        <p>Shardkey:{{.Shardkey}}</p>
+        <p>SmID:{{.SmID}}</p>
+        <p>DateCreated:{{.DateCreated}}</p>
+        <p>OofShard:{{.OofShard}}</p>
+
+        {{with .Delivery}}
+            <h3>Delivery</h3>
+            <p>Name:{{.Name}}</p>
+            <p>Phone:{{.Phone}}</p>
+            <p>ZIP:{{.ZIP}}</p>
+            <p>City:{{.City}}</p>
+            <p>Address:{{.Address}}</p>
+            <p>Region:{{.Region}}</p>
+            <p>Email:{{.Email}}</p>
+        {{end}}
+
+        {{with .Payment}}
+            <h3>Payment</h3>
+            <p>Transaction:{{.Transaction}}</p>
+            <p>RequestID:{{.RequestID}}</p>
+            <p>Currency:{{.Currency}}</p>
+            <p>Provider:{{.Provider}}</p>
+            <p>Amount:{{.Amount}}</p>
+            <p>PaymentDt:{{.PaymentDt}}</p>
+            <p>Bank:{{.Bank}}</p>
+            <p>DeliveryCost:{{.DeliveryCost}}</p>
+            <p>GoodsTotal:{{.GoodsTotal}}</p>
+            <p>CustomFee:{{.CustomFee}}</p>
+        {{end}}
+
+        {{with .Items}}
+            <h3>Items</h3>
+            {{range .}}
+                <p>ChrtID:{{.ChrtID}}</p>
+                <p>TrackNumber:{{.TrackNumber}}</p>
+                <p>Price:{{.Price}}</p>
+                <p>Rid:{{.Rid}}</p>
+                <p>Name:{{.Name}}</p>
+                <p>Sale:{{.Sale}}</p>
+                <p>Size:{{.Size}}</p>
+                <p>TotalPrice:{{.TotalPrice}}</p>
+                <p>NmID:{{.NmID}}</p>
+                <p>Brand:{{.Brand}}</p>
+                <p>Status:{{.Status}}</p>
+            {{end}}
+        {{end}}
+    {{end}}
+  </body>
+</html>
