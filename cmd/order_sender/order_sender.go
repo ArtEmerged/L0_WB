@@ -2,25 +2,52 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"math/rand"
+	"os"
 	"time"
 	"wblzero/internal/models"
 
+	"github.com/joho/godotenv"
 	stan "github.com/nats-io/stan.go"
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	clusterID = "wb_orders"
-	clientID  = "order_sender"
-	channel   = "order"
-)
+type config struct {
+	clientID  string
+	clusterID string
+	channel   string
+}
+
+func initConfig(path string) (*config, error) {
+	err := godotenv.Load(path)
+	if err != nil {
+		return nil, err
+	}
+
+	clientID := os.Getenv("CLIENT_ID_PUSH")
+	clusterID := os.Getenv("CLUSTER_ID")
+	channel := os.Getenv("CHANNEL")
+	return &config{
+		clientID:  clientID,
+		clusterID: clusterID,
+		channel:   channel,
+	}, nil
+}
 
 func main() {
+	cfgPath := flag.String("cfg", "./wb.env", "USAGE -cfg='path_to_config_file'")
+	flag.Parse()
+
+	cfg, err := initConfig(*cfgPath)
+	if err != nil {
+		logrus.Fatalf("failed to initialize config: %s\n", err.Error())
+	}
+
 	sc, err := stan.Connect(
-		clusterID,
-		clientID,
+		cfg.clusterID,
+		cfg.clientID,
 		stan.NatsURL(stan.DefaultNatsURL))
 	if err != nil {
 		logrus.Error(err.Error())
@@ -30,7 +57,7 @@ func main() {
 
 	var order models.Order
 	ticker := time.NewTicker(time.Second * 5)
-	logrus.Infof("connected to Nats Streaming %s clusterID: [%s] clientID: [%s]", stan.DefaultNatsURL, clientID, clusterID)
+	logrus.Infof("connected to Nats Streaming %s clusterID: [%s] clientID: [%s]", stan.DefaultNatsURL, cfg.clientID, cfg.clusterID)
 	for range ticker.C {
 		order = randomOrder()
 		orderByte, err := json.Marshal(order)
@@ -38,12 +65,12 @@ func main() {
 			logrus.Error(err.Error())
 			return
 		}
-		err = sc.Publish(channel, orderByte)
+		err = sc.Publish(cfg.channel, orderByte)
 		if err != nil {
 			logrus.Error(err.Error())
 			return
 		}
-		logrus.Infof("order:%s successfully shipped to '%s' channel", order.OrderUID, channel)
+		logrus.Infof("order:%s successfully shipped to '%s' channel", order.OrderUID, cfg.channel)
 	}
 }
 
