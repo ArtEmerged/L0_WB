@@ -14,15 +14,14 @@ type Subscriber struct {
 }
 
 func NewSubscribe(cfg config.Nats, handler *nats.Handler) *Subscriber {
-	const clientId = "order_recipient"
 
 	sc, err := stan.Connect(
 		cfg.ClusterId,
-		clientId)
+		cfg.ClientId)
 	if err != nil {
 		logrus.Error(err.Error())
 	}
-	logrus.Infof("connected to Nats Streaming %s clusterID: [%s] clientID: [%s]", stan.DefaultNatsURL, cfg.ClusterId, clientId)
+	logrus.Infof("connected to Nats Streaming %s clusterID: [%s] clientID: [%s]", stan.DefaultNatsURL, cfg.ClusterId, cfg.ClientId)
 
 	sub, err := sc.Subscribe(
 		cfg.Channel,
