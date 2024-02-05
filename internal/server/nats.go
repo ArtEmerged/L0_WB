@@ -38,6 +38,9 @@ func NewSubscribe(cfg config.Nats, handler *nats.Handler) *Subscriber {
 
 func (s *Subscriber) ShutdownNats() error {
 	err := s.sub.Close()
+	if err != nil {
+		return err
+	}
 	err = s.conn.Close()
 	return err
 }
