@@ -17,7 +17,8 @@ func NewSubscribe(cfg config.Nats, handler *nats.Handler) *Subscriber {
 
 	sc, err := stan.Connect(
 		cfg.ClusterId,
-		cfg.ClientId)
+		cfg.ClientId,
+		stan.NatsURL(cfg.Host))
 	if err != nil {
 		logrus.Error(err.Error())
 	}
