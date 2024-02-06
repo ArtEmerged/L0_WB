@@ -122,15 +122,7 @@
 
 ## Запуск
 
-`go mod tidy`
-
-`make docker_postgres`
-
-`make docker_nats_streaming`
-
-`make migrate_postgres`
-
-`make app`
+`make up`
 
 ### Запуск скрипта
 
