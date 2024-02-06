@@ -2,7 +2,6 @@ package nats
 
 import (
 	"encoding/json"
-	"time"
 	"wblzero/internal/models"
 	"wblzero/internal/service"
 
@@ -25,8 +24,8 @@ func (h *Handler) SaveOrder(msg *stan.Msg) {
 		logrus.Error(err.Error())
 		return
 	}
-	logrus.Infoln("sleep 5 sec")
-	time.Sleep(time.Second * 5)
+	// logrus.Infoln("sleep 5 sec")
+	// time.Sleep(time.Second * 5)
 	err = h.service.Add(order)
 	if err != nil {
 		logrus.Errorf("order %s could not be added to the database\n%s", order.OrderUID, err.Error())
