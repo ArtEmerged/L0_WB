@@ -35,10 +35,11 @@ services:
   migrate:
     image: migrate/migrate
     depends_on:
-      - postgres
+      postgres:
+         condition: service_healthy
     volumes:
       - ./schema:/migrations
-    command: ["-path", "/migrations", "-database", "${DBPG_PATH}", "up", "3"]
+    command: ["-path", "/migrations", "-database", "${DBPG_PATH}", "up"]
     networks:
       - postgres-network
     links: 
@@ -48,7 +49,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
     depends_on:
+    
       - postgres
       - nats-streaming
       - migrate
