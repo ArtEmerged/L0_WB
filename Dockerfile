@@ -16,4 +16,4 @@ WORKDIR /app
 
 COPY --from=builder /app /app
 
-CMD ["sh", "-c", "sleep 15 && ./subscriber"]
+CMD ["./subscriber"]
