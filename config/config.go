@@ -25,6 +25,7 @@ type Postgers struct {
 }
 
 type Nats struct {
+	Host      string
 	ClientId  string
 	ClusterId string
 	DurableId string
@@ -75,6 +76,7 @@ func InitConfig(fileName string) (*Config, error) {
 		SSLMode:  os.Getenv("DB_SSLMODE"),
 	}
 	nats := Nats{
+		Host:      os.Getenv("NATS_HOST"),
 		ClientId:  os.Getenv("CLIENT_ID_SUB"),
 		ClusterId: os.Getenv("CLUSTER_ID"),
 		DurableId: os.Getenv("DURABLE_ID"),
