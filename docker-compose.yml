@@ -36,7 +36,7 @@ services:
     image: migrate/migrate
     depends_on:
       postgres:
-         condition: service_healthy
+        condition: service_healthy
     volumes:
       - ./schema:/migrations
     command: ["-path", "/migrations", "-database", "${DBPG_PATH}", "up"]
