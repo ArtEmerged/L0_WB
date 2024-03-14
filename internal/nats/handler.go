@@ -3,18 +3,22 @@ package nats
 import (
 	"encoding/json"
 	"wblzero/internal/models"
-	"wblzero/internal/service"
 
+	"github.com/go-playground/validator"
 	"github.com/nats-io/stan.go"
 	"github.com/sirupsen/logrus"
 )
 
-type Handler struct {
-	service *service.Service
+type Order interface {
+	Add(order *models.Order) error
 }
 
-func NewHandler(service *service.Service) *Handler {
-	return &Handler{service: service}
+type Handler struct {
+	repo Order
+}
+
+func New(repo Order) *Handler {
+	return &Handler{repo: repo}
 }
 
 func (h *Handler) SaveOrder(msg *stan.Msg) {
@@ -24,9 +28,16 @@ func (h *Handler) SaveOrder(msg *stan.Msg) {
 		logrus.Error(err.Error())
 		return
 	}
+
+	validate := validator.New()
+	err = validate.Struct(order)
+	if err != nil {
+		logrus.Error(err.Error())
+		return
+	}
 	// logrus.Infoln("sleep 5 sec")
 	// time.Sleep(time.Second * 5)
-	err = h.service.Add(order)
+	err = h.repo.Add(order)
 	if err != nil {
 		logrus.Errorf("order %s could not be added to the database\n%s", order.OrderUID, err.Error())
 		return

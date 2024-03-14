@@ -26,23 +26,22 @@ func RunServer(cfgPath string) {
 		logrus.Fatalf("failed to initialize db: %s\n", err.Error())
 	}
 
-	repos := repo.NewRepoitory(db)
+	repo := repo.NewRepoitory(db)
 
-	cache, err := cache.NewCache(repos.Order, cfg.LenCache)
+	cache, err := cache.New(repo, cfg.LenCache)
 	if err != nil {
 		db.Close()
 		logrus.Fatalf("failed to initialize cache: %s\n", err.Error())
 	}
-	services := service.NewService(repos, cache)
+	services := service.New(cache)
 
-	handlerHttp := httpserv.NewHandler(services)
-	handlerNats := nats.NewHandler(services)
+	handlerNats := nats.New(repo)
+	handlerHttp := httpserv.New(services)
 
 	httpServ := new(server.Server)
 
 	go func() {
-		err = httpServ.Run(&cfg.CfgServer, handlerHttp.InitRouter())
-		if err != nil {
+		if err = httpServ.Run(&cfg.CfgServer, handlerHttp.InitRouter()); err != nil {
 			logrus.Errorf("occured while running http server: %s\n", err.Error())
 		}
 	}()
@@ -57,23 +56,17 @@ func RunServer(cfgPath string) {
 
 	err = httpServ.Shutdown(context.Background())
 	if err != nil {
-		logrus.Errorf("server shutdown error:%s", err.Error())
-	} else {
-		logrus.Info("server shutdown was successful")
+		logrus.Errorf("server shutdown error: %s", err.Error())
 	}
 
 	err = subscriber.ShutdownNats()
 	if err != nil {
-		logrus.Errorf("subscriber shutdown error:%s", err.Error())
-	} else {
-		logrus.Infoln("subscriber shutdown was successful")
+		logrus.Errorf("subscriber shutdown error: %s", err.Error())
 	}
 
 	err = db.Close()
 	if err != nil {
-		logrus.Errorf("DB shutdown error:%s", err.Error())
-	} else {
-		logrus.Infoln("DB shutdown was successful")
+		logrus.Errorf("DB shutdown error: %s", err.Error())
 	}
 
 }

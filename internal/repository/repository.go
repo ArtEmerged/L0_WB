@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"wblzero/internal/models"
-
 	"github.com/jmoiron/sqlx"
 )
 
@@ -14,20 +12,12 @@ const (
 	cacheTable    = "cache"
 )
 
-type Order interface {
-	Add(order *models.Order) error
-	Get(orderUID string) (*models.Order, error)
-	GetCache(sizeCache int) ([]string, error)
+type OrderRepo struct {
+	db *sqlx.DB
 }
 
-type Cache interface{}
-
-type Repository struct {
-	Order
-}
-
-func NewRepoitory(db *sqlx.DB) *Repository {
-	return &Repository{
-		Order: NewOrderPostgres(db),
+func NewRepoitory(db *sqlx.DB) *OrderRepo {
+	return &OrderRepo{
+		db: db,
 	}
 }
